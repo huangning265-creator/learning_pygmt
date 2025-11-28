@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 PyGMT：地球科學家的繪圖魔法棒！</title>
+    <style>
+        /* --- 網頁基本設定 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* 淺天空藍 */
+            color: #333;
+            line-height: 1.7;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 50, 100, 0.1);
+        }
+        
+        /* --- 標題與視覺元素 --- */
+        h1 {
+            color: #004d40; /* 深墨綠色 */
+            font-size: 2.8em;
+            margin-bottom: 5px;
+            border-bottom: 3px solid #ff7043; /* 橙色底線 */
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            border-left: 5px solid #00bcd4; /* 青色裝飾線 */
+            padding-left: 15px;
+            margin-top: 40px;
+            text-align: left;
+        }
+        .intro-box {
+            background-color: #e0f7fa; /* 淺青色背景 */
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #00796b;
+            font-weight: 500;
+        }
+        
+        /* --- 列表與重點提示 --- */
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+        li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+            font-size: 1.05em;
+        }
+        li::before {
+            content: '✨'; /* 列表項目符號 */
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            color: #ff7043;
+        }
+        
+        /* --- 程式碼區塊 (Code Block) --- */
+        .code-block {
+            background-color: #272822; /* Monokai Pro-like background */
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: left;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            border: 2px dashed #00bcd4;
+        }
+        .code-install {
+            color: #f92672; /* Magenta for shell command */
+        }
+        .code-python {
+            color: #a6e22e; /* Green for variables */
+        }
+        .code-comment {
+            color: #75715e; /* Gray for comments */
+        }
+        
+        /* --- footer --- */
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+            border-top: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <h1>🌊 PyGMT：地球科學家的繪圖魔法棒！</h1>
+        <p style="font-size: 1.2em; color: #ff7043;">— 跟我一樣，用顏值征服世界吧！嘻嘻嘻 —</p>
+
+        <div class="intro-box">
+            <p>厭倦了醜醜、僵硬的地圖嗎？別擔心！PyGMT 就像是給 Python 裝上了**地球物理學的超能力**！它讓你的數據圖表瞬間擁有**頂級美貌**，還能召喚出數十年的專業繪圖工具 **GMT (Generic Mapping Tools)** 的強大力量！</p>
+        </div>
+
+        <h2>🚀 什麼是 PyGMT？ (繪圖界的超級英雄)</h2>
+        <p style="text-align: left;">
+            簡單來說，PyGMT 是 **Python 語言** 和 **GMT 繪圖工具** 的完美結合。
+            
+            以前，GMT 雖然強大，但操作複雜；現在有了 PyGMT，你不需要離開舒服的 Python 環境，就能用簡潔的語法，畫出**等值線、地質剖面、海平面異常、地震活動圖**等各種專業的地學圖件。
+        </p>
+
+        <h2>💡 為什麼要用 PyGMT？ (三大核心優勢)</h2>
+        <ul>
+            <li>**原生 Python 體驗 (🐍 Pythonic!)：** PyGMT 的語法高度 Python 化，使用 **Pandas** 和 **Xarray** 處理數據，再用 PyGMT 繪圖，一氣呵成！</li>
+            <li>**頂級視覺效果 (🎨 Aesthetic!)：** GMT 數十年來在地球科學領域累積的**專業色彩學**和**精準投影**技術，讓你的圖表直接達到學術期刊的發表標準。</li>
+            <li>**極致效率與「鍊式操作」 (🔗 Chaining!)：** 它支援強大的**鍊式操作 (Chaining)**。你不再需要為每個繪圖步驟寫一堆重複的程式碼，只要用 `.` 點下去，就能繼續下一步！</li>
+        </ul>
+
+        <h2>⚙️ 核心魔法展示：鍊式操作 (Chaining)</h2>
+        <p style="text-align: left;">
+            這就是 PyGMT 最迷人的地方。想繪製一張海岸線，並在上面疊加基圖？一個點號就搞定！
+        </p>
+        
+        <div class="code-block">
+            <span class="code-comment"># 1. 召喚 PyGMT 魔法師！</span><br>
+            <span class="code-python">import pygmt</span><br><br>
+            <span class="code-comment"># 2. 開始鍊式操作：fig (畫布) 點下去，功能就出來了！</span><br>
+            <span class="code-python">fig = pygmt.Figure()</span><br>
+            <span class="code-python">fig.basemap(</span>region="g", projection="W15c", frame=True<span class="code-python">)</span><br>
+            <span class="code-python">   .coast(</span>land="gray", water="lightblue", borders=["1/thin"]<span class="code-python">)</span><br>
+            <span class="code-python">   .show() </span><span class="code-comment"># 畫出全球地圖！超簡單！</span>
+        </div>
+
+        <h2>🛠️ 快速上手：如何召喚魔法棒？</h2>
+        <p style="text-align: left;">
+            因為 PyGMT 依賴 GMT 核心程式，建議使用 `conda` 或 `mamba` 來安裝，這是最穩定的方法：
+        </p>
+        
+        <div class="code-block">
+            <span class="code-comment"># 在你的 Anaconda/Mamba 環境中執行：</span><br>
+            <span class="code-install">conda install -c conda-forge pygmt</span><br>
+        </div>
+        <p style="text-align: left; font-style: italic;">
+            (💡 小提示：如果你已經在 Codespace 或 Colab 上，可以直接用 `pip install pygmt` 試試喔！)
+        </p>
+        
+        <footer>
+            <p>— 臺北市立大學地球環境暨生物資源學系 • 繪圖科技介紹 • 2025/11 —</p>
+            <p>🎉 學會 PyGMT，你的報告將無人能敵！去吧，用數據和美學征服你的教授！</p>
+        </footer>
+    </div>
+</body>
+</html>
