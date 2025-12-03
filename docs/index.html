@@ -1,173 +1,185 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✈️ PyGMT 實戰分析：從影片到程式碼</title>
-    <style>
-        /* --- 延續上一頁的設計風格，保持一致性 --- */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            margin: 0;
-            padding: 0;
-            background-color: #f0f8ff;
-            color: #333;
-            line-height: 1.7;
-            text-align: center;
-        }
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 50, 100, 0.1);
-        }
+import gradio as gr
+import pygmt
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from tempfile import NamedTemporaryFile
+import os
+
+# ==========================================
+# Part 1: PyGMT 地形繪圖邏輯
+# ==========================================
+def plot_earth_relief(projection_type, colormap, show_region):
+    """
+    根據使用者選擇的參數繪製地形圖。
+    資料來源參考提供的 PyGMT 文件。
+    """
+    fig = pygmt.Figure()
+
+    # 1. 載入數據 (Load Earth relief data)
+    # region 參數可用於提供特定區域的數據
+    if show_region:
+        # 使用文件中提到的特定區域 (歐洲/非洲附近) 和較高解析度 10m
+        # region=[-14, 30, 35, 60]
+        region = [-14, 30, 35, 60]
+        grid = pygmt.datasets.load_earth_relief(resolution="10m", region=region)
+        proj_code = "M15c" if projection_type == "Mercator" else "R15c"
+    else:
+        # 使用文件中提到的全球數據，解析度 01d
+        # resolution="01d"
+        grid = pygmt.datasets.load_earth_relief(resolution="01d")
+        proj_code = "R12c" if projection_type == "Winkel Tripel" else "M12c"
+
+    # 2. 繪製圖層 (Create a plot)
+    # 使用 grdimage 方法，並依據 cmap 參數設定顏色
+    fig.grdimage(grid=grid, projection=proj_code, cmap=colormap, frame="a")
+
+    # 3. 加入色標 (Add a color bar)
+    # 設定 colorbar 的 frame 參數，包含刻度和標籤
+    fig.colorbar(frame=["a2500", "x+lElevation", "y+lm"])
+
+    # 由於 Gradio 需要圖片檔案，我們將 PyGMT 圖形存為暫存檔
+    with NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        fig.savefig(tmp.name)
+        return tmp.name
+
+# ==========================================
+# Part 2: 1D 淺水方程式模擬邏輯 (生成動畫)
+# ==========================================
+def simulate_swe(initial_height, duration):
+    """
+    執行 1D 淺水方程式並回傳 GIF 動畫路徑
+    """
+    # 參數設定
+    nx = 100
+    dx = 1.0
+    dt = 0.05
+    nt = int(duration / dt)
+    g = 9.81
+
+    # 初始化
+    x = np.linspace(0, nx*dx, nx)
+    h = np.ones(nx)
+    u = np.zeros(nx)
+
+    # 初始條件：高斯波
+    for i in range(nx):
+        if abs(i - 50) < 10:
+            h[i] = 1.0 + (initial_height - 1.0) * np.exp(-0.1 * (i - 50)**2)
+
+    h_new = h.copy()
+    u_new = u.copy()
+
+    # 建立繪圖物件
+    fig_sim, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
+    plt.subplots_adjust(hspace=0.4)
+
+    line_h, = ax1.plot(x, h, 'b-', label='Height (h)')
+    ax1.set_ylim(0, initial_height + 1.0)
+    ax1.set_ylabel('Water Height (m)')
+    ax1.set_title('1D Shallow Water Equation Simulation')
+    ax1.legend(loc='upper right')
+    ax1.grid(True)
+
+    line_u, = ax2.plot(x, u, 'r-', label='Velocity (u)')
+    ax2.set_ylim(-2.0, 2.0)
+    ax2.set_xlabel('Distance (m)')
+    ax2.set_ylabel('Velocity (m/s)')
+    ax2.legend(loc='upper right')
+    ax2.grid(True)
+
+    def update(frame):
+        nonlocal h, u, h_new, u_new
+        # Lax-Friedrichs 方法
+        for i in range(1, nx-1):
+            h_new[i] = 0.5 * (h[i+1] + h[i-1]) - (dt / (2*dx)) * (u[i+1]*h[i+1] - u[i-1]*h[i-1])
+            term1 = 0.5 * (u[i+1] + u[i-1])
+            term2 = (dt / (2*dx)) * u[i] * (u[i+1] - u[i-1])
+            term3 = (dt / (2*dx)) * g * (h[i+1] - h[i-1])
+            u_new[i] = term1 - term2 - term3
         
-        h1 {
-            color: #d84315; /* 深橘紅色 */
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            border-bottom: 3px solid #00bcd4;
-            display: inline-block;
-            padding-bottom: 10px;
-        }
-        h2 {
-            color: #0277bd; /* 深海藍 */
-            font-size: 1.6em;
-            text-align: left;
-            margin-top: 40px;
-            border-left: 5px solid #ff7043;
-            padding-left: 15px;
-        }
+        # 邊界
+        h_new[0], h_new[-1] = h_new[1], h_new[-2]
+        u_new[0], u_new[-1] = -u_new[1], -u_new[-2]
         
-        .video-box {
-            background-color: #fff3e0;
-            border: 1px solid #ffe0b2;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: left;
-            margin-bottom: 30px;
-        }
-        .video-title {
-            font-weight: bold;
-            color: #e65100;
-        }
-
-        .analysis-card {
-            background-color: #e1f5fe;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-            margin: 20px 0;
-        }
-
-        /* --- 程式碼區塊 --- */
-        .code-block {
-            background-color: #282c34;
-            color: #abb2bf;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: left;
-            font-family: 'Consolas', 'Monaco', monospace;
-            overflow-x: auto;
-            font-size: 0.95em;
-            border: 2px solid #90caf9;
-        }
-        .code-keyword { color: #c678dd; } /* def, import */
-        .code-func { color: #61afef; }    /* function calls */
-        .code-string { color: #98c379; }  /* strings */
-        .code-comment { color: #7f848e; font-style: italic; }
-
-        ul { text-align: left; padding-left: 20px; }
-        li { margin-bottom: 10px; }
+        h[:] = h_new[:]
+        u[:] = u_new[:]
         
-        footer {
-            margin-top: 50px;
-            padding: 20px;
-            color: #777;
-            font-size: 0.9em;
-            border-top: 1px dashed #ccc;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
+        line_h.set_ydata(h)
+        line_u.set_ydata(u)
+        return line_h, line_u
+
+    # 儲存為 GIF
+    output_file = "swe_simulation.gif"
+    ani = animation.FuncAnimation(fig_sim, update, frames=nt, interval=50, blit=False)
+    ani.save(output_file, writer='pillow', fps=20)
+    plt.close(fig_sim)
+    
+    return output_file
+
+# ==========================================
+# Part 3: 建構 Gradio 介面
+# ==========================================
+
+with gr.Blocks(title="地球物理互動教學平台") as demo:
+    gr.Markdown("# 🌊 地球科學與物理模擬教學平台")
+    gr.Markdown("本平台結合了 PyGMT 地形繪圖與淺水方程式數值模擬，讓學生能互動式地探索地球科學概念。")
+
+    with gr.Tab("🌍 單元一：地球地形繪圖 (PyGMT)"):
+        gr.Markdown("### 探索 PyGMT 的繪圖功能")
+        gr.Markdown("根據 PyGMT 文件，我們可以載入全球或區域地形數據，並設定不同的投影與色標。")
         
-        <h1>✈️ PyGMT 實戰：重構飛行航線圖</h1>
-        <p style="color: #555;">— 分析 GMT Short Course Lecture 3，用 Python 重新演繹！ —</p>
+        with gr.Row():
+            with gr.Column():
+                proj_input = gr.Dropdown(
+                    choices=["Winkel Tripel", "Mercator"], 
+                    value="Winkel Tripel", 
+                    label="投影法 (Projection)"
+                )
+                cmap_input = gr.Dropdown(
+                    choices=["geo", "relief", "turbo", "ocean"], 
+                    value="geo", 
+                    label="顏色映射 (Color Map)"
+                )
+                region_input = gr.Checkbox(
+                    label="僅顯示特定區域 (歐洲/北非)", 
+                    info="勾選後將使用 region=[-14, 30, 35, 60]"
+                )
+                plot_btn = gr.Button("繪製地圖", variant="primary")
+            
+            with gr.Column():
+                map_output = gr.Image(label="PyGMT Output", type="filepath")
+        
+        plot_btn.click(
+            plot_earth_relief, 
+            inputs=[proj_input, cmap_input, region_input], 
+            outputs=map_output
+        )
 
-        <div class="video-box">
-            <p><span class="video-title">📺 分析來源影片：</span> GMT Short Course - Lecture 3 - Symbols and Lines</p>
-            <p>這部影片示範了如何在舊版 GMT 中繪製線條、多邊形以及「帶文字的曲線 (Quoted Lines)」。原本的 Bash 語法雖然強大，但寫起來略顯繁瑣。今天，我們用 PyGMT 把這一切變得簡單又優雅！</p>
-        </div>
+    with gr.Tab("🌊 單元二：淺水方程式模擬 (SWE)"):
+        gr.Markdown("### 1D 淺水波動模擬")
+        gr.Markdown("觀察當我們在水面上製造一個擾動時，波浪與流速如何隨時間變化。")
+        
+        with gr.Row():
+            with gr.Column():
+                height_input = gr.Slider(
+                    minimum=1.1, maximum=5.0, value=2.0, 
+                    label="初始波浪高度 (m)"
+                )
+                time_input = gr.Slider(
+                    minimum=5, maximum=20, value=10, 
+                    label="模擬時長 (秒)"
+                )
+                sim_btn = gr.Button("開始模擬", variant="primary")
+            
+            with gr.Column():
+                video_output = gr.Image(label="Simulation Result (GIF)")
+        
+        sim_btn.click(
+            simulate_swe, 
+            inputs=[height_input, time_input], 
+            outputs=video_output
+        )
 
-        <h2>🔍 重點分析：我們學到了什麼？</h2>
-        <div class="analysis-card">
-            <ul>
-                <li><strong>📍 Quoted Lines (引用線)：</strong> 這在繪製航線、斷層線或等高線時超好用！它能讓文字沿著曲線彎曲排列，而不是死板的水平顯示。</li>
-                <li><strong>🌐 Great Circles (大圓航線)：</strong> 在地圖上，兩點之間最短的距離不是直線，而是大圓路徑。PyGMT 會自動幫我們計算這條彎曲的路徑。</li>
-                <li><strong>✨ Custom Symbols (自訂符號)：</strong> 雖然影片教了如何寫 .def 檔，但在 PyGMT 中，我們可以直接用內建符號或簡單的指令來標示機場。</li>
-            </ul>
-        </div>
-
-        <h2>💻 重構後的 PyGMT 程式碼</h2>
-        <p style="text-align: left;">
-            這段程式碼重現了影片中「布宜諾斯艾利斯 -> 法蘭克福 -> 約翰尼斯堡」的經典範例。注意看我們如何用 <code>style="q..."</code> 這個魔法參數來實現文字沿線排列！
-        </p>
-
-        <div class="code-block">
-            <span class="code-keyword">import</span> pygmt<br><br>
-            <span class="code-comment"># 1. 建立畫布，設定麥卡托投影 (Mercator)</span><br>
-            fig = pygmt.Figure()<br>
-            fig.<span class="code-func">coast</span>(<br>
-                region=<span class="code-string">"d"</span>,  <span class="code-comment"># 全球範圍 (Data domain)</span><br>
-                projection=<span class="code-string">"M15c"</span>, <span class="code-comment"># 麥卡托投影，寬 15 公分</span><br>
-                land=<span class="code-string">"lightgray"</span>, <span class="code-comment"># 陸地顏色</span><br>
-                water=<span class="code-string">"azure"</span>,    <span class="code-comment"># 海洋顏色</span><br>
-                borders=<span class="code-string">"1/0.5p"</span>, <span class="code-comment"># 繪製國界</span><br>
-                frame=<span class="code-string">"a"</span>         <span class="code-comment"># 自動邊框</span><br>
-            )<br><br>
-            <span class="code-comment"># 2. 定義航點資料：[經度, 緯度, 標籤]</span><br>
-            <span class="code-comment"># 布宜諾斯艾利斯 -> 法蘭克福 -> 約翰尼斯堡</span><br>
-            flights_lon = [-58.4, 8.68, 28.04]<br>
-            flights_lat = [-34.6, 50.11, -26.20]<br>
-            labels = [<span class="code-string">"Buenos Aires"</span>, <span class="code-string">"Frankfurt"</span>, <span class="code-string">"Johannesburg"</span>]<br><br>
-            <span class="code-comment"># 3. 繪製「帶文字」的飛行航線 (Quoted Line)</span><br>
-            <span class="code-comment"># style="q..." 是核心魔法！</span><br>
-            <span class="code-comment"># n1:+l"Flight Path" 表示線上只有 1 個標籤，內容為 "Flight Path"</span><br>
-            fig.<span class="code-func">plot</span>(<br>
-                x=flights_lon, y=flights_lat,<br>
-                pen=<span class="code-string">"2p,red,dashed"</span>, <span class="code-comment"># 紅色虛線</span><br>
-                style=<span class="code-string">"qN+1:+l\"World Tour 2025\"+f10p,Helvetica-Bold,red"</span><br>
-            )<br><br>
-            <span class="code-comment"># 4. 標示機場位置 (繪製星星符號)</span><br>
-            fig.<span class="code-func">plot</span>(<br>
-                x=flights_lon, y=flights_lat,<br>
-                style=<span class="code-string">"a0.5c"</span>,  <span class="code-comment"># a = star (星星), 大小 0.5cm</span><br>
-                color=<span class="code-string">"yellow"</span>,<br>
-                pen=<span class="code-string">"1p,black"</span><br>
-            )<br><br>
-            <span class="code-comment"># 5. 加上城市名稱文字</span><br>
-            fig.<span class="code-func">text</span>(<br>
-                x=flights_lon, y=flights_lat,<br>
-                text=labels,<br>
-                font=<span class="code-string">"12p,Helvetica-Bold,black"</span>,<br>
-                justify=<span class="code-string">"BL"</span>, <span class="code-comment"># 對齊方式：Bottom Left (文字在點的右上方)</span><br>
-                offset=<span class="code-string">"0.2c/0.2c"</span> <span class="code-comment"># 稍微偏移一點，不要蓋住星星</span><br>
-            )<br><br>
-            fig.<span class="code-func">show</span>()<br>
-        </div>
-
-        <h2>🚀 為什麼這比 Bash Script 更好？</h2>
-        <p style="text-align: left;">
-            以前在 Bash 裡，你可能要手動建立暫存文字檔、處理複雜的字串輸入。在 PyGMT 裡，我們直接使用 Python 的 <strong>List (列表)</strong> 來管理經緯度，甚至可以輕鬆結合 Pandas 資料庫。這讓數據處理和繪圖邏輯完美結合，程式碼的可讀性（Readability）也大幅提升！
-        </p>
-
-        <footer>
-            <p>— 臺北市立大學地球環境暨生物資源學系 • 課程影片分析作業 —</p>
-            <p>💡 提示：試著把經緯度換成你的下一個旅行目的地，畫出屬於你的夢想航線吧！</p>
-        </footer>
-    </div>
-</body>
-</html>
+if __name__ == "__main__":
+    demo.launch()
