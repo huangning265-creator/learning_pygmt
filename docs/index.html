@@ -3,193 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌏 PyGMT 地球科學繪圖教學</title>
+    <title>PyGMT 互動式學習指南</title>
     <style>
+        /* --- 全局設定 --- */
         :root {
+            --sidebar-width: 260px;
             --primary-color: #2c3e50;
-            --accent-color: #e67e22;
+            --accent-color: #00bcd4;
+            --text-color: #333;
             --code-bg: #282c34;
-            --light-bg: #fdfbf7;
         }
+
+        * { box-sizing: border-box; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
+            display: flex;
+            background-color: #f9f9f9;
+            color: var(--text-color);
         }
-        
-        /* --- Hero Header --- */
-        header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+
+        /* --- 左側導覽列 (Menu & List) --- */
+        nav.sidebar {
+            width: var(--sidebar-width);
+            height: 100vh; /* 佔滿全高 */
+            background-color: var(--primary-color);
             color: white;
-            padding: 60px 20px;
+            position: fixed; /* 固定在左邊 */
+            top: 0;
+            left: 0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        nav.sidebar h2 {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h1 { margin: 0; font-size: 3em; letter-spacing: 2px; }
-        .subtitle { font-size: 1.2em; opacity: 0.9; margin-top: 10px; font-weight: 300; }
-
-        /* --- Container --- */
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 20px;
         }
 
-        /* --- Section Styling --- */
+        nav.sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav.sidebar li {
+            margin-bottom: 15px;
+        }
+
+        nav.sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 1.1em;
+            display: block;
+            padding: 10px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        /* 滑鼠移過去的互動效果 */
+        nav.sidebar a:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            padding-left: 20px; /* 輕微向右移動 */
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* --- 右側主要內容區 --- */
+        main.content {
+            margin-left: var(--sidebar-width); /* 讓出左邊空間 */
+            padding: 40px 60px;
+            width: 100%;
+            scroll-behavior: smooth; /* 平滑捲動效果 */
+        }
+
         section {
             background: white;
-            border-radius: 12px;
             padding: 40px;
             margin-bottom: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            /* 這是為了讓導覽列點擊時，標題不會被遮住 */
+            scroll-margin-top: 20px; 
         }
-        h2 {
-            color: var(--primary-color);
-            border-left: 5px solid var(--accent-color);
-            padding-left: 15px;
-            margin-top: 0;
-        }
-        h3 { color: #555; margin-top: 30px; }
 
-        /* --- Code Blocks --- */
-        .code-block {
+        h1 { font-size: 2.8em; color: var(--primary-color); border-bottom: 3px solid var(--accent-color); display: inline-block;}
+        h2 { color: #e67e22; margin-top: 0; }
+        p { line-height: 1.8; font-size: 1.05em; color: #555; }
+
+        /* --- 程式碼區塊美化 --- */
+        .code-container {
             background-color: var(--code-bg);
-            color: #abb2bf;
-            padding: 20px;
             border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 模擬視窗的三個小點點 */
+        .window-dots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background-color: #ff5f56; }
+        .yellow { background-color: #ffbd2e; }
+        .green { background-color: #27c93f; }
+
+        pre {
+            color: #abb2bf;
             font-family: 'Consolas', monospace;
             overflow-x: auto;
-            border: 1px solid #ddd;
-            margin: 15px 0;
+            margin: 0;
         }
-        .comment { color: #7f848e; font-style: italic; }
-        .keyword { color: #c678dd; }
-        .string { color: #98c379; }
-        .function { color: #61afef; }
+        .kw { color: #c678dd; font-weight: bold; } /* Keyword */
+        .str { color: #98c379; } /* String */
+        .func { color: #61afef; } /* Function */
+        .com { color: #7f848e; font-style: italic; } /* Comment */
 
-        /* --- Image Display --- */
-        .figure-box {
+        /* --- 圖片引用區 (直接連線官網) --- */
+        .img-container {
             text-align: center;
-            margin: 20px 0;
-            background-color: var(--light-bg);
-            padding: 20px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #eee;
             border-radius: 8px;
-            border: 1px dashed #ccc;
         }
         img {
             max-width: 100%;
-            height: auto;
             border-radius: 4px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .caption {
+            display: block;
+            margin-top: 8px;
             font-size: 0.9em;
             color: #666;
-            margin-top: 10px;
-            display: block;
         }
 
-        /* --- Utility --- */
-        .badge {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            vertical-align: middle;
-            margin-left: 10px;
+        /* --- RWD 手機版適配 --- */
+        @media (max-width: 768px) {
+            nav.sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            main.content {
+                margin-left: 0;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🌏 PyGMT 繪圖實驗室</h1>
-        <p class="subtitle">— 讓數據說話，繪製專業級地球科學圖表 —</p>
-    </header>
+    <nav class="sidebar">
+        <h2>PyGMT 實驗室</h2>
+        <ul>
+            <li><a href="#intro">🚀 專案介紹</a></li>
+            <li><a href="#setup">🛠️ 環境安裝</a></li>
+            <li><a href="#basic">🌍 基礎繪圖 (Coast)</a></li>
+            <li><a href="#advanced">🌋 進階地形 (Relief)</a></li>
+            <li><a href="#flight">✈️ 實戰航線 (Lines)</a></li>
+        </ul>
+    </nav>
 
-    <div class="container">
-
-        <section>
-            <h2>📝 課程一：繪製地球地形 (Earth Relief)</h2>
-            <p>PyGMT 最強大的功能之一，就是能直接從遠端伺服器下載地形數據並繪圖。我們不需要自己準備龐大的數據檔，一行指令就搞定！</p>
-
-            <h3>1. 下載數據 (Load Data)</h3>
-            <p>使用 <code>load_earth_relief</code> 函數。我們可以設定解析度 (resolution)，例如 <code>"01d"</code> 代表 1弧度 (1 arc-degree)。</p>
-            <div class="code-block">
-<span class="keyword">import</span> pygmt<br>
-<span class="comment"># 下載全球地形數據，解析度為 1 度</span><br>
-grid = pygmt.datasets.<span class="function">load_earth_relief</span>(resolution=<span class="string">"01d"</span>)
-            </div>
-
-            <h3>2. 繪製網格影像 (Create a Plot)</h3>
-            <p>使用 <code>grdimage</code> 方法來視覺化網格數據。它會根據 Z 值 (高度) 自動填色。</p>
-            <ul>
-                <li><strong>projection (投影):</strong> 設定地圖投影法。例如 <code>"R12c"</code> 代表寬 12 公分的 Winkel Tripel 投影。</li>
-                <li><strong>cmap (色階):</strong> 設定顏色表。常用選項有 <code>"geo"</code> (地理)、<code>"relief"</code> (地形) 或預設的 <code>"turbo"</code>。</li>
-            </ul>
-
-            <div class="code-block">
-fig = pygmt.Figure()<br>
-<span class="comment"># 繪製地圖：設定投影為 Winkel Tripel，色階為 'geo'</span><br>
-fig.<span class="function">grdimage</span>(grid=grid, projection=<span class="string">"R12c"</span>, cmap=<span class="string">"geo"</span>)<br>
-<span class="comment"># 加入 Colorbar：設定刻度間隔為 2500，並標註軸標籤</span><br>
-fig.<span class="function">colorbar</span>(frame=[<span class="string">"a2500"</span>, <span class="string">"x+lElevation"</span>, <span class="string">"y+lm"</span>])<br>
-fig.show()
-            </div>
-
-            <div class="figure-box">
-                <img src="earth_global.png" alt="請先執行 Python 產生 earth_global.png">
-                <span class="caption">▲ 全球地形圖 (Winkel Tripel 投影 + Geo 色階)</span>
-            </div>
-
-            <h3>3. 比較不同的色階 (Color Maps)</h3>
-            <p>只要改變 <code>cmap</code> 參數，就能改變地圖的風格。例如改成 <code>"relief"</code>：</p>
-            <div class="figure-box">
-                <img src="earth_relief_cmap.png" alt="請先執行 Python 產生 earth_relief_cmap.png">
-                <span class="caption">▲ 使用 "Relief" 色階的效果 (灰階陰影質感)</span>
+    <main class="content">
+        
+        <section id="intro">
+            <h1>PyGMT 地球科學繪圖</h1>
+            <p>歡迎來到現代地球物理學的繪圖世界！這份指南將帶你了解如何使用 Python 結合 GMT 的強大功能，繪製出期刊等級的科學圖表。</p>
+            <div style="background: #e1f5fe; padding: 15px; border-left: 5px solid #00bcd4; border-radius: 4px;">
+                <strong>💡 為什麼選擇 PyGMT？</strong>
+                <p>簡單、直覺、美觀。它將複雜的 GMT 指令包裝成 Python 函式，讓科學家能專注於數據分析，而不是被語法卡住。</p>
             </div>
         </section>
 
-        <section>
-            <h2>🔍 課程二：鎖定特定區域 (Region Map)</h2>
-            <p>我們通常只需要研究某個國家或地區。這時可以使用 <code>region</code> 參數來裁切數據。</p>
-            <p>注意：當解析度高於 5 arc-minutes (例如 <code>"10m"</code>) 時，<strong>必須</strong>指定 region 範圍，才不會下載太多數據把電腦跑當機！</p>
-
-            <div class="code-block">
-<span class="comment"># 載入解析度 10m 的數據，範圍鎖定在歐洲 [經度最小, 經度最大, 緯度最小, 緯度最大]</span><br>
-grid = pygmt.datasets.<span class="function">load_earth_relief</span>(resolution=<span class="string">"10m"</span>, region=[<span class="string">-14, 30, 35, 60</span>])<br><br>
-fig = pygmt.Figure()<br>
-<span class="comment"># 使用 Mercator 投影 (M)，寬度 15cm，並加上邊框 (frame="a")</span><br>
-fig.<span class="function">grdimage</span>(grid=grid, projection=<span class="string">"M15c"</span>, frame=<span class="string">"a"</span>, cmap=<span class="string">"geo"</span>)<br>
-fig.<span class="function">colorbar</span>(frame=[<span class="string">"a1000"</span>, <span class="string">"x+lElevation"</span>, <span class="string">"y+lm"</span>])<br>
-fig.show()
-            </div>
-
-            <div class="figure-box">
-                <img src="earth_region.png" alt="請先執行 Python 產生 earth_region.png">
-                <span class="caption">▲ 歐洲區域地形圖 (Mercator 投影)</span>
-            </div>
-        </section>
-
-        <section>
-            <h2>✈️ 綜合應用：飛行航線圖 <span class="badge">複習</span></h2>
-            <p>還記得我們上一堂課學的 Quoted Lines 嗎？這是結合海岸線繪製與符號標示的經典範例。</p>
+        <section id="setup">
+            <h2>🛠️ 快速安裝指南</h2>
+            <p>工欲善其事，必先利其器。建議使用 Conda 來管理環境，以確保所有依賴套件 (如 Ghostscript) 都能正確安裝。</p>
             
-            <div class="figure-box">
-                <img src="flight_path.png" alt="請確認 flight_path.png 存在">
-                <span class="caption">▲ 大圓航線與自訂標籤應用</span>
+            <div class="code-container">
+                <div class="window-dots">
+                    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                </div>
+                <pre>
+<span class="com"># 1. 建立虛擬環境</span>
+conda create --name pygmt python=3.9
+
+<span class="com"># 2. 啟用環境</span>
+conda activate pygmt
+
+<span class="com"># 3. 安裝 PyGMT (透過 conda-forge)</span>
+conda install --channel conda-forge pygmt
+                </pre>
             </div>
         </section>
 
-        <footer>
-            <p>© 2025 臺北市立大學地球環境暨生物資源學系 • PyGMT 教學網頁</p>
-            <p>Keep Coding, Keep Mapping! 🗺️</p>
-        </footer>
+        <section id="basic">
+            <h2>🌍 基礎繪圖：海岸線</h2>
+            <p>這是所有地圖的起點。使用 <code>coast</code> 方法，我們可以輕易畫出世界地圖、填色，並加上經緯度邊框。</p>
+            
+            <div class="code-container">
+                <pre>
+<span class="kw">import</span> pygmt
 
-    </div>
+fig = pygmt.Figure()
+<span class="com"># 繪製海岸線：麥卡托投影，寬 15cm</span>
+fig.<span class="func">coast</span>(
+    region=<span class="str">"g"</span>,
+    projection=<span class="str">"M15c"</span>,
+    land=<span class="str">"gray"</span>,
+    water=<span class="str">"lightblue"</span>,
+    frame=<span class="str">"a"</span>
+)
+fig.<span class="func">show</span>()
+                </pre>
+            </div>
+            
+            <div class="img-container">
+                <img src="https://www.pygmt.org/latest/_images/sphx_glr_coast_001.png" alt="基礎海岸線圖">
+                <span class="caption">▲ PyGMT 輸出的標準海岸線地圖 (來源：PyGMT Gallery)</span>
+            </div>
+        </section>
+
+        <section id="advanced">
+            <h2>🌋 進階魔法：繪製地形網格 (grdimage)</h2>
+            <p>還在手動下載 DEM 數據嗎？PyGMT 內建 <code>load_earth_relief</code>，一秒鐘載入全球地形數據！</p>
+            
+            <div class="code-container">
+                <pre>
+<span class="com"># 1. 自動下載全球地形數據 (解析度 1度)</span>
+grid = pygmt.datasets.<span class="func">load_earth_relief</span>(resolution=<span class="str">"01d"</span>)
+
+fig = pygmt.Figure()
+<span class="com"># 2. 繪製網格影像，使用 "geo" 色階</span>
+fig.<span class="func">grdimage</span>(grid=grid, projection=<span class="str">"R12c"</span>, cmap=<span class="str">"geo"</span>)
+<span class="com"># 3. 加上色彩條 (Colorbar)</span>
+fig.<span class="func">colorbar</span>(frame=[<span class="str">"a2500"</span>, <span class="str">"x+lElevation"</span>, <span class="str">"y+lm"</span>])
+fig.<span class="func">show</span>()
+                </pre>
+            </div>
+
+            <div class="img-container">
+                <img src="https://www.pygmt.org/latest/_images/sphx_glr_earth_relief_001.png" alt="全球地形圖">
+                <span class="caption">▲ 使用 grdimage 繪製的全球地形與色彩條 (來源：PyGMT Gallery)</span>
+            </div>
+        </section>
+
+        <section id="flight">
+            <h2>✈️ 實戰應用：大圓航線</h2>
+            <p>結合我們學到的技巧，這是一個「布宜諾斯艾利斯 -> 法蘭克福 -> 約翰尼斯堡」的飛行路徑圖。注意我們使用了 <code>style="q..."</code> 來製作沿著線條排列的文字。</p>
+
+            <div class="code-container">
+                <pre>
+<span class="kw">import</span> pygmt
+
+fig = pygmt.Figure()
+fig.<span class="func">coast</span>(region=<span class="str">"d"</span>, projection=<span class="str">"M15c"</span>, land=<span class="str">"lightgray"</span>, water=<span class="str">"azure"</span>)
+
+lons = [-58.4, 8.68, 28.04]
+lats = [-34.6, 50.11, -26.20]
+
+<span class="com"># 繪製紅色虛線航線，並加上文字標籤</span>
+fig.<span class="func">plot</span>(
+    x=lons, y=lats, 
+    pen=<span class="str">"2p,red,dashed"</span>,
+    style=<span class="str">"qN+1:+l\"World Tour\"+f10p,Helvetica,red"</span>
+)
+fig.<span class="func">show</span>()
+                </pre>
+            </div>
+            
+            <div class="img-container">
+                <img src="https://www.pygmt.org/v0.3.1/_images/sphx_glr_plot_004.png" alt="航線示意圖">
+                <span class="caption">▲ 透過 plot 指令繪製的大圓路徑示意 (來源：PyGMT Gallery)</span>
+            </div>
+        </section>
+
+    </main>
+
 </body>
-</html>  
+</html>
