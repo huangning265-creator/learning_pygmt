@@ -1,157 +1,177 @@
-import gradio as gr
-import pygmt
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from tempfile import NamedTemporaryFile
-import os
-
-# --- Part 1: PyGMT Earth Relief Plotting Logic ---
-def plot_earth_relief(projection_type, colormap, show_region):
-    fig = pygmt.Figure()
-
-    if show_region:
-        region = [-14, 30, 35, 60]
-        grid = pygmt.datasets.load_earth_relief(resolution="10m", region=region)
-        proj_code = "M15c" if projection_type == "Mercator" else "R15c"
-    else:
-        grid = pygmt.datasets.load_earth_relief(resolution="01d")
-        proj_code = "R12c" if projection_type == "Winkel Tripel" else "M12c"
-
-    fig.grdimage(grid=grid, projection=proj_code, cmap=colormap, frame="a")
-    fig.colorbar(frame=["a2500", "x+lElevation", "y+lm"])
-
-    with NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-        fig.savefig(tmp.name)
-        return tmp.name
-
-# --- Part 2: 1D Shallow Water Equation Simulation Logic ---
-def simulate_swe(initial_height, duration):
-    # Parameters
-    nx = 100; dx = 1.0; dt = 0.05
-    nt = int(duration / dt); g = 9.81
-    
-    # Initialization
-    x = np.linspace(0, nx*dx, nx)
-    h = np.ones(nx)
-    u = np.zeros(nx)
-
-    # Initial Condition: Gaussian Bump
-    for i in range(nx):
-        if abs(i - 50) < 10:
-            h[i] = 1.0 + (initial_height - 1.0) * np.exp(-0.1 * (i - 50)**2)
-
-    h_new = h.copy()
-    u_new = u.copy()
-
-    # Plot setup
-    fig_sim, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
-    plt.subplots_adjust(hspace=0.4)
-
-    line_h, = ax1.plot(x, h, 'b-', label='Height (h)')
-    ax1.set_ylim(0, initial_height + 1.0)
-    ax1.set_title('1D Shallow Water Equation Simulation')
-    ax1.legend(loc='upper right')
-    ax1.grid(True)
-
-    line_u, = ax2.plot(x, u, 'r-', label='Velocity (u)')
-    ax2.set_ylim(-2.0, 2.0)
-    ax2.set_xlabel('Distance (m)')
-    ax2.legend(loc='upper right')
-    ax2.grid(True)
-
-    # Core Numerical Solver (Lax-Friedrichs)
-    def update(frame):
-        nonlocal h, u, h_new, u_new
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 PyGMT：地球科學家的繪圖魔法棒！</title>
+    <style>
+        /* --- 網頁基本設定 (與之前相同，保持風格一致) --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* 淺天空藍 */
+            color: #333;
+            line-height: 1.7;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 50, 100, 0.1);
+        }
         
-        for i in range(1, nx-1):
-            # Mass Conservation (h)
-            h_new[i] = 0.5 * (h[i+1] + h[i-1]) - \
-                       (dt / (2*dx)) * (u[i+1]*h[i+1] - u[i-1]*h[i-1])
-            
-            # Momentum Conservation (u) - Simplified Non-Conservative Form
-            term1 = 0.5 * (u[i+1] + u[i-1])
-            term2 = (dt / (2*dx)) * u[i] * (u[i+1] - u[i-1])
-            term3 = (dt / (2*dx)) * g * (h[i+1] - h[i-1])
-            u_new[i] = term1 - term2 - term3
+        /* --- 標題與視覺元素 --- */
+        h1 {
+            color: #004d40; /* 深墨綠色 */
+            font-size: 2.8em;
+            margin-bottom: 5px;
+            border-bottom: 3px solid #ff7043; /* 橙色底線 */
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            border-left: 5px solid #00bcd4; /* 青色裝飾線 */
+            padding-left: 15px;
+            margin-top: 40px;
+            text-align: left;
+        }
+        .intro-box {
+            background-color: #e0f7fa; /* 淺青色背景 */
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #00796b;
+            font-weight: 500;
+        }
         
-        # Boundary Conditions (Reflective)
-        h_new[0], h_new[-1] = h_new[1], h_new[-2]
-        u_new[0], u_new[-1] = -u_new[1], -u_new[-2]
+        /* --- 列表與重點提示 --- */
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+        li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+            font-size: 1.05em;
+        }
+        li::before {
+            content: '✨'; /* 列表項目符號 */
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            color: #ff7043;
+        }
         
-        h[:] = h_new[:]
-        u[:] = u_new[:]
+        /* --- 程式碼區塊 (Code Block) --- */
+        .code-block {
+            background-color: #272822; /* Monokai Pro-like background */
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: left;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            border: 2px dashed #00bcd4;
+        }
+        .code-install { color: #f92672; } /* Shell command */
+        .code-python { color: #a6e22e; }  /* Variables/Functions */
+        .code-comment { color: #75715e; } /* Comments */
+        .code-string { color: #e6db74; }  /* Strings */
         
-        line_h.set_ydata(h)
-        line_u.set_ydata(u)
-        return line_h, line_u
+        /* --- footer --- */
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+            border-top: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <h1>🌊 PyGMT：地球科學家的繪圖魔法棒！</h1>
+        <p style="font-size: 1.2em; color: #ff7043;">— 跟我一樣，用顏值征服世界吧！嘻嘻嘻 —</p>
 
-    # Save as GIF
-    output_file = "swe_simulation.gif"
-    ani = animation.FuncAnimation(fig_sim, update, frames=nt, interval=50, blit=False)
-    ani.save(output_file, writer='pillow', fps=20)
-    plt.close(fig_sim)
-    
-    return output_file
+        <div class="intro-box">
+            <p>厭倦了醜醜、僵硬的地圖嗎？別擔心！PyGMT 就像是給 Python 裝上了**地球物理學的超能力**！它讓你的數據圖表瞬間擁有**頂級美貌**，還能召喚出數十年的專業繪圖工具 **GMT (Generic Mapping Tools)** 的強大力量！</p>
+        </div>
 
-# --- Part 3: Gradio Interface Setup ---
-with gr.Blocks(title="Geophysical Teaching Platform") as demo:
-    gr.Markdown("# Geophysical Teaching Platform")
-    gr.Markdown("This platform combines PyGMT Earth Relief visualization and 1D Shallow Water Equation numerical simulation.")
+        <h2>🚀 什麼是 PyGMT？ (繪圖界的超級英雄)</h2>
+        <p style="text-align: left;">
+            簡單來說，PyGMT 是 **Python 語言** 和 **GMT 繪圖工具** 的完美結合。
+            以前，GMT 雖然強大，但操作複雜；現在有了 PyGMT，你不需要離開舒服的 Python 環境，就能用簡潔的語法，畫出**等值線、地質剖面、海平面異常、地震活動圖**等各種專業的地學圖件。
+        </p>
 
-    with gr.Tab("Earth Relief Plotting (PyGMT)"):
-        gr.Markdown("### Explore PyGMT Plotting Features")
-        
-        with gr.Row():
-            with gr.Column():
-                proj_input = gr.Dropdown(
-                    choices=["Winkel Tripel", "Mercator"], 
-                    value="Winkel Tripel", 
-                    label="Projection"
-                )
-                cmap_input = gr.Dropdown(
-                    choices=["geo", "relief", "turbo", "ocean"], 
-                    value="geo", 
-                    label="Color Map"
-                )
-                region_input = gr.Checkbox(
-                    label="Show Specific Region (Europe/N. Africa)", 
-                    info="Uses region=[-14, 30, 35, 60] with 10m resolution."
-                )
-                plot_btn = gr.Button("Generate Map", variant="primary")
-            
-            with gr.Column():
-                map_output = gr.Image(label="PyGMT Output", type="filepath")
-        
-        plot_btn.click(
-            plot_earth_relief, 
-            inputs=[proj_input, cmap_input, region_input], 
-            outputs=map_output
-        )
+        <h2>💡 為什麼要用 PyGMT？ (三大核心優勢)</h2>
+        <ul>
+            <li>**原生 Python 體驗 (🐍 Pythonic!)：** PyGMT 的語法高度 Python 化，使用 **Pandas** 和 **Xarray** 處理數據，再用 PyGMT 繪圖，一氣呵成！</li>
+            <li>**頂級視覺效果 (🎨 Aesthetic!)：** GMT 數十年來在地球科學領域累積的**專業色彩學**和**精準投影**技術，讓你的圖表直接達到學術期刊的發表標準。</li>
+            <li>**極致效率與「鍊式操作」 (🔗 Chaining!)：** 它支援強大的**鍊式操作 (Chaining)**。你不再需要為每個繪圖步驟寫一堆重複的程式碼，只要用 `.` 點下去，就能繼續下一步！</li>
+        </ul>
 
-    with gr.Tab("1D Shallow Water Simulation"):
-        gr.Markdown("### 1D Water Wave Simulation")
+        <h2>⚙️ 基礎魔法展示：鍊式操作 (Chaining)</h2>
+        <p style="text-align: left;">
+            這就是 PyGMT 最迷人的地方。想繪製一張海岸線，並在上面疊加基圖？一個點號就搞定！
+        </p>
         
-        with gr.Row():
-            with gr.Column():
-                height_input = gr.Slider(
-                    minimum=1.1, maximum=5.0, value=2.0, 
-                    label="Initial Wave Height (m)"
-                )
-                time_input = gr.Slider(
-                    minimum=5, maximum=20, value=10, 
-                    label="Simulation Duration (s)"
-                )
-                sim_btn = gr.Button("Run Simulation", variant="primary")
-            
-            with gr.Column():
-                video_output = gr.Image(label="Simulation Result (GIF)")
-        
-        sim_btn.click(
-            simulate_swe, 
-            inputs=[height_input, time_input], 
-            outputs=video_output
-        )
+        <div class="code-block">
+            <span class="code-comment"># 1. 召喚 PyGMT 魔法師！</span><br>
+            <span class="code-python">import pygmt</span><br><br>
+            <span class="code-comment"># 2. 開始鍊式操作：fig (畫布) 點下去，功能就出來了！</span><br>
+            <span class="code-python">fig = pygmt.Figure()</span><br>
+            <span class="code-python">fig.basemap(</span>region=<span class="code-string">"g"</span>, projection=<span class="code-string">"W15c"</span>, frame=True<span class="code-python">)</span><br>
+            <span class="code-python">   .coast(</span>land=<span class="code-string">"gray"</span>, water=<span class="code-string">"lightblue"</span>, borders=[<span class="code-string">"1/thin"</span>]<span class="code-python">)</span><br>
+            <span class="code-python">   .show() </span><span class="code-comment"># 畫出全球地圖！超簡單！</span>
+        </div>
 
-if __name__ == "__main__":
-    demo.launch()
+        <h2>🌋 進階魔法展示：繪製網格影像 (grdimage)</h2>
+        <p style="text-align: left;">
+            這是地球物理學家最愛的功能！當你手上有一個數值網格檔案（例如：衛星重力異常數據 `grid`），你可以用 `grdimage` 指令，瞬間把它變成一張色彩豐富、專業的科學圖像。
+        </p>
+        <p style="text-align: left;">
+            看看這語法有多簡潔、多優雅！
+        </p>
+
+        <div class="code-block" style="border-color: #ff7043;"> <span class="code-comment"># 假設你已經讀取了一個網格資料，存放在變數 'grid' 中</span><br>
+            <span class="code-comment"># (例如：grid = pygmt.datasets.load_earth_relief())</span><br><br>
+            <span class="code-python">fig = pygmt.Figure()</span><br><br>
+            <span class="code-comment"># ✨ 核心指令：grdimage ✨</span><br>
+            <span class="code-comment"># projection="R12c" 代表使用「羅賓森投影 (Robinson)」，寬度 12 公分</span><br>
+            <span class="code-python">fig.grdimage(</span>grid=grid, projection=<span class="code-string">"R12c"</span><span class="code-python">)</span><br><br>
+            <span class="code-python">fig.show() </span><span class="code-comment"># 見證奇蹟的時刻！</span>
+        </div>
+        <p style="text-align: left; font-size: 0.9em; color: #666;">
+            (💡 小提示：這行程式碼會自動根據網格數值的大小，填上 GMT 預設的專業色階，讓你的數據一目了然！)
+        </p>
+        <h2>🛠️ 快速上手：如何召喚魔法棒？</h2>
+        <p style="text-align: left;">
+            因為 PyGMT 依賴 GMT 核心程式，建議使用 `conda` 或 `mamba` 來安裝，這是最穩定的方法：
+        </p>
+        
+        <div class="code-block">
+            <span class="code-comment"># 在你的 Anaconda/Mamba 環境中執行：</span><br>
+            <span class="code-install">conda install -c conda-forge pygmt</span><br>
+        </div>
+        <p style="text-align: left; font-style: italic;">
+            (💡 小提示：如果你已經在 Codespace 或 Colab 上，可以直接用 `pip install pygmt` 試試喔！)
+        </p>
+        
+        <footer>
+            <p>— 臺北市立大學地球環境暨生物資源學系 • 繪圖科技介紹 • 2025/11 —</p>
+            <p>🎉 學會 PyGMT，你的報告將無人能敵！去吧，用數據和美學征服你的教授！</p>
+        </footer>
+    </div>
+</body>
+</html>
