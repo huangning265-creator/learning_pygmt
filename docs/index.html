@@ -208,13 +208,13 @@ fig.<span class="func">show</span>()
             
             <div class="img-container">
                 <img src="assert/basic_coast.png" alt="基礎海岸線圖">
-                <span class="caption">▲ PyGMT 輸出的標準海岸線地圖 (來源：PyGMT Gallery)</span>
+                <span class="caption">▲ PyGMT 輸出的標準海岸線地圖</span>
             </div>
         </section>
 
         <section id="global">
             <h2>⛰️ 核心繪圖：全球地形 (grdimage)</h2>
-            <p>使用 <code>pygmt.datasets.load_earth_relief</code> 下載數據，並使用 <code>pygmt.Figure.grdimage</code> 方法繪製網格影像。</p>
+            <p>使用 <code>pygmt.datasets.load_earth_relief</code> 下載數據，並使用 <code>pygmt.Figure.grdimage</code> 方法繪製網格影像。 </p>
             
             <div class="code-block">
 <span class="kw">import</span> pygmt
@@ -233,7 +233,7 @@ fig.show()
             </div>
 
             <h3>4.1 比較不同的色階 (Color Maps)</h3>
-            <p>改變 <code>cmap</code> 參數即可。例如改成 <code>"relief"</code>：</p>
+            <p>只要改變 <code>cmap</code> 參數即可。例如改成 <code>"relief"</code>：</p>
             <div class="code-block">
 fig = pygmt.Figure()
 fig.<span class="func">grdimage</span>(grid=grid, projection=<span class="str">"R12c"</span>, cmap=<span class="str">"relief"</span>)
@@ -247,7 +247,7 @@ fig.show()
 
         <section id="region">
             <h2>🗺️ 區域放大 (Region Map)</h2>
-            <p>使用 <code>region</code> 參數可以鎖定特定範圍，並配合高解析度數據 (例如 <code>"10m"</code>) 來放大繪製，通常搭配 Mercator 投影。</p>
+            <p>使用 <code>region</code> 參數可以鎖定特定範圍，並配合高解析度數據 (例如 <code>"10m"</code>) 來放大繪製，通常搭配 Mercator 投影。 </p>
 
             <div class="code-block">
 <span class="comment"># 載入歐洲區域的高解析度數據</span>
