@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌊 PyGMT：地球科學家的繪圖魔法棒！</title>
+    <title>✈️ PyGMT 實戰分析：從影片到程式碼</title>
     <style>
-        /* --- 網頁基本設定 --- */
+        /* --- 延續上一頁的設計風格，保持一致性 --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             margin: 0;
             padding: 0;
-            background-color: #f0f8ff; /* 淺天空藍 */
+            background-color: #f0f8ff;
             color: #333;
             line-height: 1.7;
             text-align: center;
@@ -24,76 +24,64 @@
             box-shadow: 0 10px 30px rgba(0, 50, 100, 0.1);
         }
         
-        /* --- 標題與視覺元素 --- */
         h1 {
-            color: #004d40; /* 深墨綠色 */
-            font-size: 2.8em;
-            margin-bottom: 5px;
-            border-bottom: 3px solid #ff7043; /* 橙色底線 */
+            color: #d84315; /* 深橘紅色 */
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #00bcd4;
             display: inline-block;
             padding-bottom: 10px;
         }
         h2 {
-            color: #2c3e50;
-            font-size: 1.8em;
-            border-left: 5px solid #00bcd4; /* 青色裝飾線 */
-            padding-left: 15px;
+            color: #0277bd; /* 深海藍 */
+            font-size: 1.6em;
+            text-align: left;
             margin-top: 40px;
-            text-align: left;
-        }
-        .intro-box {
-            background-color: #e0f7fa; /* 淺青色背景 */
-            padding: 15px 25px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-            color: #00796b;
-            font-weight: 500;
+            border-left: 5px solid #ff7043;
+            padding-left: 15px;
         }
         
-        /* --- 列表與重點提示 --- */
-        ul {
-            list-style: none;
-            padding: 0;
-            text-align: left;
-        }
-        li {
-            margin-bottom: 15px;
-            padding-left: 30px;
-            position: relative;
-            font-size: 1.05em;
-        }
-        li::before {
-            content: '✨'; /* 列表項目符號 */
-            position: absolute;
-            left: 0;
-            font-size: 1.2em;
-            color: #ff7043;
-        }
-        
-        /* --- 程式碼區塊 (Code Block) --- */
-        .code-block {
-            background-color: #272822; /* Monokai Pro-like background */
-            color: #f8f8f2;
+        .video-box {
+            background-color: #fff3e0;
+            border: 1px solid #ffe0b2;
             padding: 20px;
             border-radius: 8px;
-            margin: 30px 0;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        .video-title {
+            font-weight: bold;
+            color: #e65100;
+        }
+
+        .analysis-card {
+            background-color: #e1f5fe;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        /* --- 程式碼區塊 --- */
+        .code-block {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
             text-align: left;
             font-family: 'Consolas', 'Monaco', monospace;
             overflow-x: auto;
-            border: 2px dashed #00bcd4;
+            font-size: 0.95em;
+            border: 2px solid #90caf9;
         }
-        .code-install {
-            color: #f92672; /* Magenta for shell command */
-        }
-        .code-python {
-            color: #a6e22e; /* Green for variables */
-        }
-        .code-comment {
-            color: #75715e; /* Gray for comments */
-        }
+        .code-keyword { color: #c678dd; } /* def, import */
+        .code-func { color: #61afef; }    /* function calls */
+        .code-string { color: #98c379; }  /* strings */
+        .code-comment { color: #7f848e; font-style: italic; }
+
+        ul { text-align: left; padding-left: 20px; }
+        li { margin-bottom: 10px; }
         
-        /* --- footer --- */
         footer {
             margin-top: 50px;
             padding: 20px;
@@ -106,58 +94,79 @@
 <body>
     <div class="container">
         
-        <h1>🌊 PyGMT：地球科學家的繪圖魔法棒！</h1>
-        <p style="font-size: 1.2em; color: #ff7043;">— 跟我一樣，用顏值征服世界吧！嘻嘻嘻 —</p>
+        <h1>✈️ PyGMT 實戰：重構飛行航線圖</h1>
+        <p style="color: #555;">— 分析 GMT Short Course Lecture 3，用 Python 重新演繹！ —</p>
 
-        <div class="intro-box">
-            <p>厭倦了醜醜、僵硬的地圖嗎？別擔心！PyGMT 就像是給 Python 裝上了**地球物理學的超能力**！它讓你的數據圖表瞬間擁有**頂級美貌**，還能召喚出數十年的專業繪圖工具 **GMT (Generic Mapping Tools)** 的強大力量！</p>
+        <div class="video-box">
+            <p><span class="video-title">📺 分析來源影片：</span> GMT Short Course - Lecture 3 - Symbols and Lines</p>
+            <p>這部影片示範了如何在舊版 GMT 中繪製線條、多邊形以及「帶文字的曲線 (Quoted Lines)」。原本的 Bash 語法雖然強大，但寫起來略顯繁瑣。今天，我們用 PyGMT 把這一切變得簡單又優雅！</p>
         </div>
 
-        <h2>🚀 什麼是 PyGMT？ (繪圖界的超級英雄)</h2>
+        <h2>🔍 重點分析：我們學到了什麼？</h2>
+        <div class="analysis-card">
+            <ul>
+                <li><strong>📍 Quoted Lines (引用線)：</strong> 這在繪製航線、斷層線或等高線時超好用！它能讓文字沿著曲線彎曲排列，而不是死板的水平顯示。</li>
+                <li><strong>🌐 Great Circles (大圓航線)：</strong> 在地圖上，兩點之間最短的距離不是直線，而是大圓路徑。PyGMT 會自動幫我們計算這條彎曲的路徑。</li>
+                <li><strong>✨ Custom Symbols (自訂符號)：</strong> 雖然影片教了如何寫 .def 檔，但在 PyGMT 中，我們可以直接用內建符號或簡單的指令來標示機場。</li>
+            </ul>
+        </div>
+
+        <h2>💻 重構後的 PyGMT 程式碼</h2>
         <p style="text-align: left;">
-            簡單來說，PyGMT 是 **Python 語言** 和 **GMT 繪圖工具** 的完美結合。
-            
-            以前，GMT 雖然強大，但操作複雜；現在有了 PyGMT，你不需要離開舒服的 Python 環境，就能用簡潔的語法，畫出**等值線、地質剖面、海平面異常、地震活動圖**等各種專業的地學圖件。
+            這段程式碼重現了影片中「布宜諾斯艾利斯 -> 法蘭克福 -> 約翰尼斯堡」的經典範例。注意看我們如何用 <code>style="q..."</code> 這個魔法參數來實現文字沿線排列！
         </p>
 
-        <h2>💡 為什麼要用 PyGMT？ (三大核心優勢)</h2>
-        <ul>
-            <li>**原生 Python 體驗 (🐍 Pythonic!)：** PyGMT 的語法高度 Python 化，使用 **Pandas** 和 **Xarray** 處理數據，再用 PyGMT 繪圖，一氣呵成！</li>
-            <li>**頂級視覺效果 (🎨 Aesthetic!)：** GMT 數十年來在地球科學領域累積的**專業色彩學**和**精準投影**技術，讓你的圖表直接達到學術期刊的發表標準。</li>
-            <li>**極致效率與「鍊式操作」 (🔗 Chaining!)：** 它支援強大的**鍊式操作 (Chaining)**。你不再需要為每個繪圖步驟寫一堆重複的程式碼，只要用 `.` 點下去，就能繼續下一步！</li>
-        </ul>
-
-        <h2>⚙️ 核心魔法展示：鍊式操作 (Chaining)</h2>
-        <p style="text-align: left;">
-            這就是 PyGMT 最迷人的地方。想繪製一張海岸線，並在上面疊加基圖？一個點號就搞定！
-        </p>
-        
         <div class="code-block">
-            <span class="code-comment"># 1. 召喚 PyGMT 魔法師！</span><br>
-            <span class="code-python">import pygmt</span><br><br>
-            <span class="code-comment"># 2. 開始鍊式操作：fig (畫布) 點下去，功能就出來了！</span><br>
-            <span class="code-python">fig = pygmt.Figure()</span><br>
-            <span class="code-python">fig.basemap(</span>region="g", projection="W15c", frame=True<span class="code-python">)</span><br>
-            <span class="code-python">   .coast(</span>land="gray", water="lightblue", borders=["1/thin"]<span class="code-python">)</span><br>
-            <span class="code-python">   .show() </span><span class="code-comment"># 畫出全球地圖！超簡單！</span>
+            <span class="code-keyword">import</span> pygmt<br><br>
+            <span class="code-comment"># 1. 建立畫布，設定麥卡托投影 (Mercator)</span><br>
+            fig = pygmt.Figure()<br>
+            fig.<span class="code-func">coast</span>(<br>
+                region=<span class="code-string">"d"</span>,  <span class="code-comment"># 全球範圍 (Data domain)</span><br>
+                projection=<span class="code-string">"M15c"</span>, <span class="code-comment"># 麥卡托投影，寬 15 公分</span><br>
+                land=<span class="code-string">"lightgray"</span>, <span class="code-comment"># 陸地顏色</span><br>
+                water=<span class="code-string">"azure"</span>,    <span class="code-comment"># 海洋顏色</span><br>
+                borders=<span class="code-string">"1/0.5p"</span>, <span class="code-comment"># 繪製國界</span><br>
+                frame=<span class="code-string">"a"</span>         <span class="code-comment"># 自動邊框</span><br>
+            )<br><br>
+            <span class="code-comment"># 2. 定義航點資料：[經度, 緯度, 標籤]</span><br>
+            <span class="code-comment"># 布宜諾斯艾利斯 -> 法蘭克福 -> 約翰尼斯堡</span><br>
+            flights_lon = [-58.4, 8.68, 28.04]<br>
+            flights_lat = [-34.6, 50.11, -26.20]<br>
+            labels = [<span class="code-string">"Buenos Aires"</span>, <span class="code-string">"Frankfurt"</span>, <span class="code-string">"Johannesburg"</span>]<br><br>
+            <span class="code-comment"># 3. 繪製「帶文字」的飛行航線 (Quoted Line)</span><br>
+            <span class="code-comment"># style="q..." 是核心魔法！</span><br>
+            <span class="code-comment"># n1:+l"Flight Path" 表示線上只有 1 個標籤，內容為 "Flight Path"</span><br>
+            fig.<span class="code-func">plot</span>(<br>
+                x=flights_lon, y=flights_lat,<br>
+                pen=<span class="code-string">"2p,red,dashed"</span>, <span class="code-comment"># 紅色虛線</span><br>
+                style=<span class="code-string">"qN+1:+l\"World Tour 2025\"+f10p,Helvetica-Bold,red"</span><br>
+            )<br><br>
+            <span class="code-comment"># 4. 標示機場位置 (繪製星星符號)</span><br>
+            fig.<span class="code-func">plot</span>(<br>
+                x=flights_lon, y=flights_lat,<br>
+                style=<span class="code-string">"a0.5c"</span>,  <span class="code-comment"># a = star (星星), 大小 0.5cm</span><br>
+                color=<span class="code-string">"yellow"</span>,<br>
+                pen=<span class="code-string">"1p,black"</span><br>
+            )<br><br>
+            <span class="code-comment"># 5. 加上城市名稱文字</span><br>
+            fig.<span class="code-func">text</span>(<br>
+                x=flights_lon, y=flights_lat,<br>
+                text=labels,<br>
+                font=<span class="code-string">"12p,Helvetica-Bold,black"</span>,<br>
+                justify=<span class="code-string">"BL"</span>, <span class="code-comment"># 對齊方式：Bottom Left (文字在點的右上方)</span><br>
+                offset=<span class="code-string">"0.2c/0.2c"</span> <span class="code-comment"># 稍微偏移一點，不要蓋住星星</span><br>
+            )<br><br>
+            fig.<span class="code-func">show</span>()<br>
         </div>
 
-        <h2>🛠️ 快速上手：如何召喚魔法棒？</h2>
+        <h2>🚀 為什麼這比 Bash Script 更好？</h2>
         <p style="text-align: left;">
-            因為 PyGMT 依賴 GMT 核心程式，建議使用 `conda` 或 `mamba` 來安裝，這是最穩定的方法：
+            以前在 Bash 裡，你可能要手動建立暫存文字檔、處理複雜的字串輸入。在 PyGMT 裡，我們直接使用 Python 的 <strong>List (列表)</strong> 來管理經緯度，甚至可以輕鬆結合 Pandas 資料庫。這讓數據處理和繪圖邏輯完美結合，程式碼的可讀性（Readability）也大幅提升！
         </p>
-        
-        <div class="code-block">
-            <span class="code-comment"># 在你的 Anaconda/Mamba 環境中執行：</span><br>
-            <span class="code-install">conda install -c conda-forge pygmt</span><br>
-        </div>
-        <p style="text-align: left; font-style: italic;">
-            (💡 小提示：如果你已經在 Codespace 或 Colab 上，可以直接用 `pip install pygmt` 試試喔！)
-        </p>
-        
+
         <footer>
-            <p>— 臺北市立大學地球環境暨生物資源學系 • 繪圖科技介紹 • 2025/11 —</p>
-            <p>🎉 學會 PyGMT，你的報告將無人能敵！去吧，用數據和美學征服你的教授！</p>
+            <p>— 臺北市立大學地球環境暨生物資源學系 • 課程影片分析作業 —</p>
+            <p>💡 提示：試著把經緯度換成你的下一個旅行目的地，畫出屬於你的夢想航線吧！</p>
         </footer>
     </div>
 </body>
